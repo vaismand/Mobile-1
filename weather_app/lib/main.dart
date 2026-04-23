@@ -14,12 +14,12 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFF0a2b2b),
         colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF66fcf1),
-          secondary: Color(0xFF0a2b2b),
+          primary: Color(0xFF0a2b2b),
+          secondary: Color(0xFF66fcf1),
         ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF66fcf1),
-          foregroundColor: Color(0xFF0a2b2b),
+          backgroundColor: Color(0xFF0a2b2b),
+          foregroundColor: Color(0xFF66fcf1),
         ),
       ),
       home: const MyHomePage(title: 'Weather App'),
@@ -36,31 +36,49 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage>
+    with SingleTickerProviderStateMixin {
   int _page = 0;
-  static const List<String> _pageTitles = ['Currently', 'Today', 'Weekly'];
+  late final TabController _tabController;
 
   void _onPageChanged(int index) {
-    setState(() {
-      _page = index;
+    _tabController.animateTo(index);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      if (_page != _tabController.index) {
+        setState(() {
+          _page = _tabController.index;
+        });
+      }
     });
   }
 
   @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final String currentPageTitle = _pageTitles[_page];
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Text(
-          currentPageTitle,
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
+      appBar: AppBar(backgroundColor: Colors.black, title: Text(widget.title)),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          Center(child: Text('Currently Page', style: TextStyle(fontSize: 24))),
+          Center(child: Text('Today Page', style: TextStyle(fontSize: 24))),
+          Center(child: Text('Weekly Page', style: TextStyle(fontSize: 24))),
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _page,
+        onTap: _onPageChanged,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.sunny),
@@ -78,8 +96,6 @@ class _MyHomePageState extends State<MyHomePage> {
             key: Key('weekly'),
           ),
         ],
-        currentIndex: _page,
-        onTap: _onPageChanged,
       ),
     );
   }
